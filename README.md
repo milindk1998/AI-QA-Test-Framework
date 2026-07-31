@@ -16,7 +16,7 @@ This repository evaluates LLM responses with DeepEval while using a Streamlit ch
 | Path | Purpose |
 |---|---|
 | chatbot.py | Streamlit chatbot UI and reusable ask_llm() function |
-| ChatHistory.json | Persistent chat message history for the UI |
+| ChatHistory.json | Persistent chat history created at runtime (not tracked in Git) |
 | test/LLMModeAsJudge.py | Custom DeepEval model wrapper used as LLM-as-Judge |
 | test/multipleMetricTest.py | Evaluates locally defined Golden test cases |
 | test/pullingDatasetLLMTest.py | Pulls a dataset from Confident AI and evaluates it |
@@ -28,37 +28,37 @@ This repository evaluates LLM responses with DeepEval while using a Streamlit ch
 ## Architecture
 
 ```mermaid
-flowchart LR
-   A[Test Sources] --> B[Test Scripts]
-   B --> C[chatbot.py ask_llm]
-   C --> D[Target LLM testmodel]
-   D --> E[actual_output]
-   E --> F[LLMTestCase]
-   F --> G[DeepEval evaluate]
-   G --> H[Metrics AnswerRelevancy and Faithfulness]
-   H --> I[Judge LLM modelAsJudge]
-   I --> J[Score reason pass fail]
-   J --> K[Console and Confident AI]
-   L[Streamlit UI] --> C
+flowchart TB
+   A[Inputs from Goldens or Datasets]
+   B[Test Runner Scripts]
+   C[System Under Test ask_llm]
+   D[Target LLM testmodel]
+   E[Build LLMTestCase]
+   F[DeepEval Metrics]
+   G[Judge LLM modelAsJudge]
+   H[Scores and Reasons]
+   I[Console and Confident AI]
+   U[Streamlit UI]
+
+   A --> B --> C --> D --> E --> F --> G --> H --> I
+   U --> C
 ```
 
 Plain text fallback:
 
 ```text
-Test Sources (local Goldens / pulled dataset / dev.json)
-   -> Test Scripts (multipleMetricTest.py, pullingDatasetLLMTest.py, usingDevDataset.py)
-   -> chatbot.py ask_llm() [system under test]
+Inputs (local Goldens / pulled dataset / dev.json)
+   -> Test runner scripts
+   -> ask_llm() in chatbot.py
    -> Target LLM (testmodel)
-   -> actual_output
    -> LLMTestCase
-   -> DeepEval evaluate()
-   -> Metrics (AnswerRelevancy, Faithfulness)
+   -> DeepEval metrics
    -> Judge LLM (modelAsJudge)
-   -> Score / reason / pass-fail
+   -> Scores and reasons
    -> Console + optional Confident AI tracking
 
-Streamlit UI (streamlit run chatbot.py)
-   -> chatbot.py ask_llm()
+Streamlit UI
+   -> ask_llm() in chatbot.py
 ```
 
 ## Evaluation flow
