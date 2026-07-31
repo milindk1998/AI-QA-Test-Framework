@@ -9,7 +9,7 @@ from deepeval.metrics import (
 )
 
 from chatbot import ask_llm
-from deepEvalLLM import DeepEvalLLM
+from LLMModeAsJudge import DeepEvalLLM
 
 judge = DeepEvalLLM()
 
@@ -29,15 +29,6 @@ expected_response2 = "Goldens are the correct answers used for evaluation, Test 
 
 retrieval_context = [
     """
-    Machine learning is a branch of artificial intelligence (AI) that focuses on the development of algorithms and statistical models that enable computers to learn and improve from experience without being explicitly programmed. 
-    It involves training models on large datasets to recognize patterns, make predictions, and perform tasks such as classification, regression, clustering, and recommendation. 
-    Machine learning is widely used in various applications, including natural language processing, computer vision, speech recognition, and autonomous systems.
-
-    Deep learning is a subset of machine learning that uses artificial neural networks with multiple layers (hence "deep") to model complex patterns in data.
-    It is particularly effective for tasks such as image and speech recognition, natural language processing, and game playing.
-
-    Generative AI refers to a class of artificial intelligence techniques that focus on creating new content, such as text, images, music, or even code, based on learned patterns from existing data.
-
     Deep Evals is a framework for evaluating the performance of AI models, particularly in the context of natural language processing and generative AI. It provides tools and metrics to assess the quality, relevance, and faithfulness of model outputs.
     Goldens are the correct answers or reference outputs used for evaluation.
     Test cases are individual evaluations that compare model outputs against goldens.

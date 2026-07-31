@@ -4,7 +4,7 @@ from deepeval.metrics import AnswerRelevancyMetric, FaithfulnessMetric
 from deepeval.test_case import LLMTestCase
 
 from chatbot import ask_llm
-from deepEvalLLM import DeepEvalLLM
+from LLMModeAsJudge import DeepEvalLLM
 
 # we have pushed pur dataset to confident ai and now we will just pull it and use it to test LLM
 

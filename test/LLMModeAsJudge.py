@@ -1,53 +1,54 @@
 import os
 from dotenv import load_dotenv
-from openai import OpenAI
+from langchain_openai import ChatOpenAI
+from langchain_core.messages import HumanMessage
 from deepeval.models.base_model import DeepEvalBaseLLM
-import streamlit as st
 
 load_dotenv()
 
 # LLM as a judge for evaluation
 class DeepEvalLLM(DeepEvalBaseLLM):
-    
+
     def __init__(self):
-        self.client = OpenAI(
+        self._model_name = os.getenv("modelAsJudge")
+        self.client = ChatOpenAI(
+            model=self._model_name,
             api_key=os.getenv("grok_api_key"),
-            base_url=os.getenv("base_url")
+            base_url=os.getenv("base_url"),
+            temperature=0,
         )
-        self.model = os.getenv("modelAsJudge")
-        
+
     def load_model(self):
         return self.client
-    
+
     def get_model_name(self):
-        return self.model
-    
-    def generate(self, prompt: str):
-        response = self.client.chat.completions.create(
-            model=self.model,
-            messages=[
-                {"role": "user", "content": prompt}
-            ],
-            temperature=0,
-            stream=False
-        )
-        return response.choices[0].message.content
-    
+        return self._model_name
 
-    async def a_generate(self, prompt: str):
-        return self.generate(prompt)
-    
-# llm = DeepEvalLLM()
-# test_prompt = "What is DeepEval in one sentence? \nothink"
-# response = llm.generate(test_prompt)
-# print(f"LLM-as-Judge Response: {response} \n")
+    def generate(self, prompt: str) -> str:
+        response = self.client.invoke([HumanMessage(content=prompt)])
+        return response.content
 
+    async def a_generate(self, prompt: str) -> str:
+        response = await self.client.ainvoke([HumanMessage(content=prompt)])
+        return response.content
+    
 
 def run_streamlit_ui():
+    import streamlit as st
+    try:
+        from streamlit.runtime.scriptrunner import get_script_run_ctx
+        if get_script_run_ctx() is None:
+            print("Run this UI with: streamlit run test/deepEvalLLM.py")
+            return
+    except Exception:
+        pass
+
     st.set_page_config(page_title="LLM UI", page_icon=":test_tube:", layout="centered")
     st.title("LLM-as-Judge")
     st.write("Enter a prompt and generate a response using your configured model.")
-    st.markdown("Design and developed by Milind Krishna | © 2026")
+
+    st.sidebar.markdown(f"**Note:** This Chatbot is powered by the model: `{DeepEvalLLM().get_model_name()}`")
+    st.sidebar.markdown("Design and developed by Milind Krishna | © 2026")
 
     prompt = st.text_area(
         "Prompt",
@@ -65,7 +66,7 @@ def run_streamlit_ui():
             try:
                 llm = DeepEvalLLM()
                 response = llm.generate(prompt)
-                st.subheader("LLM-as-Judge Response")
+                st.subheader("Model Response")
                 st.write(response)
             except Exception as exc:
                 st.error(f"Failed to generate response: {exc}")
