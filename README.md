@@ -28,19 +28,37 @@ This repository evaluates LLM responses with DeepEval while using a Streamlit ch
 ## Architecture
 
 ```mermaid
-flowchart TD
-   A[Test sources\nlocal Goldens / pulled dataset / dev.json] --> B[Test scripts\nmultipleMetricTest.py\npullingDatasetLLMTest.py\nusingDevDataset.py]
-   B --> C[System under test\nchatbot.py ask_llm()]
-   C --> D[Target LLM\nOpenAI-compatible endpoint\nmodel=testmodel]
+flowchart LR
+   A[Test Sources] --> B[Test Scripts]
+   B --> C[chatbot.py ask_llm]
+   C --> D[Target LLM testmodel]
    D --> E[actual_output]
-   E --> F[LLMTestCase\ninput + expected_output + retrieval_context]
-   F --> G[DeepEval evaluate()]
-   G --> H[Metrics\nAnswerRelevancy + Faithfulness]
-   H --> I[LLM as Judge\nDeepEvalLLM in test/LLMModeAsJudge.py\nmodel=modelAsJudge]
-   I --> J[Scores, reasons, pass/fail]
-   J --> K[Console reports + optional Confident AI tracking]
+   E --> F[LLMTestCase]
+   F --> G[DeepEval evaluate]
+   G --> H[Metrics AnswerRelevancy and Faithfulness]
+   H --> I[Judge LLM modelAsJudge]
+   I --> J[Score reason pass fail]
+   J --> K[Console and Confident AI]
+   L[Streamlit UI] --> C
+```
 
-   L[Streamlit UI\nstreamlit run chatbot.py] --> C
+Plain text fallback:
+
+```text
+Test Sources (local Goldens / pulled dataset / dev.json)
+   -> Test Scripts (multipleMetricTest.py, pullingDatasetLLMTest.py, usingDevDataset.py)
+   -> chatbot.py ask_llm() [system under test]
+   -> Target LLM (testmodel)
+   -> actual_output
+   -> LLMTestCase
+   -> DeepEval evaluate()
+   -> Metrics (AnswerRelevancy, Faithfulness)
+   -> Judge LLM (modelAsJudge)
+   -> Score / reason / pass-fail
+   -> Console + optional Confident AI tracking
+
+Streamlit UI (streamlit run chatbot.py)
+   -> chatbot.py ask_llm()
 ```
 
 ## Evaluation flow
