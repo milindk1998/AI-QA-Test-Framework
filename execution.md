@@ -1,68 +1,48 @@
+# Execution Architecture
 
-                       conftest.py
-                   deepeval.login(api_key)
-                           │
-           ┌───────────────┴───────────────┐
-           │                               │
-           ▼                               ▼
-  multipleMetricTest.py         pullingDatasetLLMTest.py
-           │                               │
-  Define Goldens locally         dataset.pull(alias=
-  (input, expected_output,       "Dataset for AI Test")
-   retrieval_context)                      │
-           │                               │
-  EvaluationDataset(goldens)    EvaluationDataset (remote)
-           │                               │
-           └───────────────┬───────────────┘
-                           │
-              for golden in dataset.goldens:
-                           │
-                           ▼
-                  chatbot.py  ──────────────────────┐
-                ask_llm(golden.input)               │
-                           │                        │  Streamlit UI
-                           ▼                        │  (streamlit run chatbot.py)
-                       LLM Model                    │
-                  (testmodel via OpenAI)            │
-                           │                        │
-                           ▼                        │
-                     actual_output                  │
-                           │                        │
-                           ▼                        │
-                      LLMTestCase                   │
-       ┌──────────────────────────────────┐         │
-       │ input        = golden.input      │         │
-       │ actual_output = response         │         │
-       │ expected_output = golden.expected│         │
-       │ retrieval_context                │         │
-       └──────────────────────────────────┘         │
-                           │                        │
-                           ▼
-            evaluate(test_cases, metrics)
-                           │
-           ┌───────────────┴───────────────┐
-           ▼                               ▼
- AnswerRelevancyMetric          FaithfulnessMetric
-  (threshold=0.7)                (threshold=0.7)
-  include_reason=True            include_reason=True
-           │                               │
-           └───────────────┬───────────────┘
-                           ▼
-                     DeepEvalLLM
-              ┌──────────────────────────┐
-              │ OpenAI client            │
-              │ api_key = model_api_key  │
-              │ base_url = base_url      │
-              │ model   = modelAsJudge   │
-              │ generate() / a_generate()│
-              └──────────────────────────┘
-                           │
-                           ▼
-                  LLM Model as Judge
-                  (temperature=0)
-                           │
-                           ▼
-               Score • Reason • Pass/Fail
-                           │
-                           ▼
-                Console + Confident AI
+This file documents how prompts flow from dataset inputs through the chatbot and into DeepEval scoring.
+
+## High-Level Flow
+
+```mermaid
+flowchart TB
+            A[Input Sources<br/>local Goldens or pulled dataset or dev.json] --> B[Test Scripts]
+            B --> C[chatbot.py ask_llm]
+            C --> D[Target LLM testmodel]
+            D --> E[actual_output]
+            E --> F[LLMTestCase]
+            F --> G[DeepEval evaluate]
+            G --> H[AnswerRelevancy and Faithfulness]
+            H --> I[Judge LLM modelAsJudge]
+            I --> J[Scores and reasons]
+            J --> K[Console and optional Confident AI]
+
+            U[Streamlit UI] --> C
+```
+
+## Plain-Text Fallback
+
+```text
+Input sources (local Goldens, pulled dataset, or dev.json)
+      -> test scripts
+      -> ask_llm() in chatbot.py
+      -> target LLM (testmodel)
+      -> actual_output
+      -> LLMTestCase
+      -> DeepEval evaluate()
+      -> metrics (AnswerRelevancy, Faithfulness)
+      -> judge LLM (modelAsJudge)
+      -> scores and reasons
+      -> console + optional Confident AI tracking
+
+Streamlit UI
+      -> ask_llm() in chatbot.py
+```
+
+## Script Roles
+
+- test/multipleMetricTest.py: Defines local Goldens and evaluates responses.
+- test/pullingDatasetLLMTest.py: Pulls dataset from Confident AI and evaluates.
+- test/usingDevDataset.py: Builds Golden data from dev.json and evaluates sample rows.
+- test/LLMModeAsJudge.py: Provides the DeepEval LLM-as-Judge wrapper.
+- chatbot.py: System under test and Streamlit chat interface.
